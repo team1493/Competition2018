@@ -11,10 +11,14 @@ public class FalconDrive {
 	WPI_TalonSRX br = new WPI_TalonSRX(5);
 
 	
+	private final double RAMPRATE_OPEN=.5;
+	
+	private double LRCorrection = 0.05;
+	
 	private double KP_VEL=0; 
 	private double KI_VEL=0; 
 	private double KD_VEL=0; 
-	private double KF_VEL=0;
+	private double KF_VEL=1;
 	private int KIZONE_VEL=0;
 	private int MAXRPM = 400;
 
@@ -54,6 +58,11 @@ public class FalconDrive {
 		fr.configPeakOutputReverse(-1.0, TIMEOUT);
 
 		br.setSensorPhase(false);		
+		
+		br.configOpenloopRamp(RAMPRATE_OPEN, TIMEOUT);
+		bl.configOpenloopRamp(RAMPRATE_OPEN, TIMEOUT);
+		fr.configOpenloopRamp(RAMPRATE_OPEN, TIMEOUT);
+		fl.configOpenloopRamp(RAMPRATE_OPEN, TIMEOUT);
 	
 	}
 
@@ -183,7 +192,6 @@ public class FalconDrive {
 		SmartDashboard.putNumber("Position Left" ,getPositionLeft());
 		SmartDashboard.putNumber("Position Right" ,getPositionRight());}
 		catch(Exception e) {
-			System.out.println("Error Reading Encoder");
 		}
 		SmartDashboard.putNumber("Closed Loop Err Left" ,bl.getClosedLoopError(10));
 		SmartDashboard.putNumber("Closed Loop Err Right" ,br.getClosedLoopError(10));		
@@ -195,8 +203,17 @@ public class FalconDrive {
 	  public void arcadeDrive(double moveValue, double rotateValue, boolean squared) {
 		    double leftMotorSpeed;
 		    double rightMotorSpeed;
+
+// FOR TUNING - Remove once completing
+//		    LRCorrection=SmartDashboard.getNumber("DB/Slider 0", .18);
+//		    KP_VEL = SmartDashboard.getNumber("DB/Slider 1", 0);
+//		    KD_VEL=SmartDashboard.getNumber("DB/Slider 2", 0);
+//		    MAXRPM=(int)( (1000*SmartDashboard.getNumber("DB/Slider 3", 0) ));
+///		    
 		    
 		    moveValue = limit(moveValue);
+		    LRCorrection = (moveValue>0) ? 0.18 : 0.18;
+		    rotateValue = 0.8*rotateValue+LRCorrection*moveValue;
 		    rotateValue = -limit(rotateValue);
 		    
 // square the inputs (while preserving the sign) to increase fine control
@@ -240,8 +257,6 @@ public class FalconDrive {
 		    if(bl.getControlMode()==VELOCITY) {
 		    	bl.set(VELOCITY,-MAXRPM*limit(leftMotorSpeed));		    
 		    	br.set(VELOCITY,MAXRPM*limit(rightMotorSpeed));
-				SmartDashboard.putNumber("setval" ,-MAXRPM*limit(rightMotorSpeed));
-				SmartDashboard.putNumber("MaxRPMset" ,MAXRPM);
 		    	
 		    }
 		  }

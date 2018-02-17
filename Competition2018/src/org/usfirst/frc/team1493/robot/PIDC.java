@@ -10,7 +10,7 @@ import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 
 public class PIDC {
 private NavXGyro gyro;
-private AnalogSonar sonar;
+private SerialSonar sonar;
 private FalconDrive falconDrive;
 
 private double MAX_ROTATE_SPEED=800;
@@ -55,7 +55,7 @@ Joystick joy0;
 
 // ** remove joystick in competition code unless PID's used in telop
 // ** add while Auto mode ?
-	public PIDC(FalconDrive falconDrive1,NavXGyro gyro1,AnalogSonar sonar1,Joystick joya) {
+	public PIDC(FalconDrive falconDrive1,NavXGyro gyro1,SerialSonar sonar1,Joystick joya) {
 
 	joy0 = joya;
 	falconDrive = falconDrive1;
@@ -78,6 +78,9 @@ Joystick joy0;
 		double timeontarget=0,timeontargetstart=0;
 		boolean ontarget1=false,ontarget2=false;
 		boolean velmode=false;
+		KP_TURN=SmartDashboard.getNumber("DB/Slider 0", 0);
+		KI_TURN=SmartDashboard.getNumber("DB/Slider 0", 0);
+		KD_TURN=SmartDashboard.getNumber("DB/Slider 0", 0);
 		if(falconDrive.getmode()==VELOCITY) velmode = true;
 		angle1 = gyro.getAngle(); 
 		target=target+angle1;

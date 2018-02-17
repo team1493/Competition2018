@@ -4,23 +4,49 @@ import com.ctre.phoenix.motorcontrol.ControlMode;
 import com.ctre.phoenix.motorcontrol.can.WPI_TalonSRX;
 
 public class Intake {
-	WPI_TalonSRX intakeMotor = new WPI_TalonSRX(6);
+	WPI_TalonSRX intakeMotorL = new WPI_TalonSRX(2);
+	WPI_TalonSRX intakeMotorR = new WPI_TalonSRX(9);
 	
+
 	public Intake() {
-		intakeMotor.setNeutralMode(com.ctre.phoenix.motorcontrol.NeutralMode.Coast);
-		intakeMotor.set(ControlMode.PercentOutput,0);
+		intakeMotorL.setNeutralMode(com.ctre.phoenix.motorcontrol.NeutralMode.Coast);
+		intakeMotorL.set(ControlMode.PercentOutput,0);
+		intakeMotorR.setNeutralMode(com.ctre.phoenix.motorcontrol.NeutralMode.Coast);
+		intakeMotorR.set(ControlMode.PercentOutput,0);
+	
+		intakeMotorR.setInverted(true);
+		
+		intakeMotorL.configNominalOutputForward(0, 10);
+		intakeMotorR.configNominalOutputForward(0, 10);
+		intakeMotorL.configNominalOutputReverse(0, 10);
+		intakeMotorR.configNominalOutputReverse(0, 10);
+		
+		intakeMotorL.configPeakOutputForward(1, 10);
+		intakeMotorR.configPeakOutputForward(1, 10);
+		intakeMotorL.configPeakOutputReverse(-1, 10);
+		intakeMotorR.configPeakOutputReverse(-1, 10);
+		
 	}
 	
 	public void spinIn() {
-		intakeMotor.set(1);
+		intakeMotorL.set(.6);
+		intakeMotorR.set(.6);
+	}
+	
+	
+	public void spinInSlow() {
+		intakeMotorL.set(.25);
+		intakeMotorR.set(.25);
 	}
 	
 	public void spinOut() {
-		intakeMotor.set(-1);
+		intakeMotorL.set(-.6);
+		intakeMotorR.set(-.6);
 	}
 
 	public void stop() {
-		intakeMotor.set(0);
+		intakeMotorL.set(0);
+		intakeMotorR.set(0);
 	}
 
 	
