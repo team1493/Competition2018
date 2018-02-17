@@ -49,7 +49,7 @@ private short[] age = new short[numreads+2];
 			
 			
 			});
-		t.start();
+//		t.start();
 	}
 	
 	public double getRange() {
@@ -126,13 +126,5 @@ public int search(float vin) {
 
 	}
 
-	private void printarray() {
-		int i = 1;
-		while(i<=numreads) {		
-			System.out.println("i = "+i+"  v  ="+voltage[i]+"   age = "+age[i]);
-			i++;
-
-		}
-	}
 
 }

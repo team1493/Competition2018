@@ -4,34 +4,59 @@ import com.ctre.phoenix.motorcontrol.ControlMode;
 import com.ctre.phoenix.motorcontrol.LimitSwitchNormal;
 import com.ctre.phoenix.motorcontrol.LimitSwitchSource;
 import com.ctre.phoenix.motorcontrol.can.WPI_TalonSRX;
-
+import com.ctre.phoenix.motorcontrol.ControlMode;
+import edu.wpi.first.wpilibj.Solenoid;
 
 public class Arm {
 	WPI_TalonSRX arm = new WPI_TalonSRX(6);
-	double pos1=0.2;
-	double pos2 = 0.4;
-	double KP=.4;
+	Solenoid solUp = new Solenoid(0);
+	Solenoid solDown = new Solenoid(1);
+	
+	double pos1=-200;     // down
+	double pos2 = -615;  //up
+//motor output for position control with analog pot = (kp/1023) x error 
+	double KPup=8;
+	double KPdown = .8;
 	double KI = 0;
-	double KD = 0;
+	double KDup = 1000;
+	double KDdown = 900;
 	double KF = 0;
 	int KIZONE = 0;
 	private final int TIMEOUT=10;
 
 	
 	public Arm() {
+		armStop();
 		arm.setNeutralMode(com.ctre.phoenix.motorcontrol.NeutralMode.Brake);
-		arm.config_kP(0, KP, TIMEOUT);
+		arm.config_kP(0, KPup, TIMEOUT);
 		arm.config_kI(0, KI, TIMEOUT);
-		arm.config_kD(0, KD, TIMEOUT);
+		arm.config_kD(0, KDup, TIMEOUT);
 		arm.config_kF(0, KF, TIMEOUT);
 		arm.config_IntegralZone(0, KIZONE, TIMEOUT);
 		
 		arm.configSelectedFeedbackSensor(com.ctre.phoenix.motorcontrol.FeedbackDevice.Analog, 0,0);
+		arm.configPeakOutputForward(.4,10);
+		arm.configPeakOutputReverse(-.4,10);
+		arm.configNominalOutputForward(0, 10);
+		arm.configNominalOutputReverse(0, 10);
+		arm.configAllowableClosedloopError(0,20,10);
+		
+// set reverse soft limit greater than position 1 setting - will this have the effect of lettign
+// the arm settle back to position 1 with no power?		
+//		arm.configReverseSoftLimitThreshold(-400, 10); 		 
+//		arm.configForwardSoftLimitThreshold(-500, 10); 		 
+		arm.configForwardSoftLimitEnable(false, 10); 
+		arm.configReverseSoftLimitEnable(false, 10); 
+		 
+		 
+		arm.setInverted(false);
+		arm.setSensorPhase(true);
 
-		// *** uncomment if using limit switches attached to the dataport
-//		elev.configForwardLimitSwitchSource(LimitSwitchSource.FeedbackConnector, 
+
+// *** uncomment if using limit switches attached to the dataport
+//		arm.configForwardLimitSwitchSource(LimitSwitchSource.FeedbackConnector, 
 //				LimitSwitchNormal.NormallyOpen, 0);
-//		elev.configReverseLimitSwitchSource(LimitSwitchSource.FeedbackConnector, 
+//		arm.configReverseLimitSwitchSource(LimitSwitchSource.FeedbackConnector, 
 //				LimitSwitchNormal.NormallyOpen, 0);
 // ***
 
@@ -39,11 +64,66 @@ public class Arm {
 		arm.set(ControlMode.PercentOutput,0);		
 	}
 	
-	public void setPostion(int pos) {
-		if (pos==1)arm.set(pos1);
-		else arm.set(pos2);
+	public void setPostionButton(int pos) {
+		if (pos==1) {
+			arm.config_kP(0, KPdown, TIMEOUT);
+			arm.config_kD(0, KDdown, TIMEOUT);
+			arm.set(ControlMode.Position,pos1,10);
+			Thread t = new Thread(() -> {
+				while(arm.getSelectedSensorPosition(0)<-210) {
+					continue;
+				}
+				arm.set(ControlMode.PercentOutput,0);		
+			});
+		t.start();
 
+		}
+		else {
+			arm.config_kP(0, KPup, TIMEOUT);
+			arm.config_kD(0, KDup, TIMEOUT);
+			arm.set(ControlMode.Position,pos2,10);			
+		}
 	}
 	
+
+	
+	public void setPositionStick(double setpoint) {
+		arm.set(ControlMode.Position,setpoint);
+	}
+
+	public void armStop() {
+		arm.set(ControlMode.PercentOutput,0);
+	}
+	
+	
+	public void setSolenoid(boolean solPosition) {
+		solUp.set(solPosition);
+		solDown.set(!solPosition);
+	}
+	
+	public int getPosition() {
+		int position;
+		position=arm.getSelectedSensorPosition(0);
+		return position;
+	}
+	
+	public double getError() {
+		double error;
+		error=arm.getClosedLoopError(0);
+		return error;
+	}
+
+	
+	public String getOutputCalledFor() {
+		double output;
+		output=arm.get();
+		return String.valueOf(output);
+	}
+
+	
+	public String getMode() {
+		String a=String.valueOf( arm.getControlMode() );
+		return a;
+	}
 	
 }
