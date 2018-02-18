@@ -14,29 +14,29 @@ private SerialSonar sonar;
 private FalconDrive falconDrive;
 
 private double MAX_ROTATE_SPEED=800;
-private double MAX_ROTATE_POWER=0.35;
+private double MAX_ROTATE_POWER=0.6;
 private double MAX_STRAIGHT_POWER=0.5;
 
 private double sg_MAX_ROTATE_SPEED=800;
 private double sg_MAX_ROTATE_POWER=0.35;
 private double sg_MAX_STRAIGHT_POWER=0.35;
 
-private double KP_TURN=0.1;
+private double KP_TURN=0.3;
 private double KI_TURN=0;
-private double KD_TURN=0.0;
+private double KD_TURN=0.05;
 private double KF_TURN=0;
 private double KIZONE_TURN=0;
 private double TOLERANCE_TURN=0.5;
-private double TIMEONTARGETSET_TURN = 1;
+private double TIMEONTARGETSET_TURN = .5;
 
-private double KP_SRAIGHTENC_GYRO=0.1;
+private double KP_SRAIGHTENC_GYRO=0.0065;
 private double KI_SRAIGHTENC_GYRO=0;
-private double KD_SRAIGHTENC_GYRO=0.0;
+private double KD_SRAIGHTENC_GYRO=0.0003;
 private double KF_SRAIGHTENC_GYRO=0;
 private double KIZONE_SRAIGHTENC_GYRO=0;
 private double KPANGLE_SRAIGHTENC_GYRO=0.1;
-private double TOLERANCE_STRAIGHTENC_GYRO = 1;
-private double TIMEONTARGETSET_STRAIGHTENC_GYRO = 1;
+private double TOLERANCE_STRAIGHTENC_GYRO = 10;
+private double TIMEONTARGETSET_STRAIGHTENC_GYRO = .5;
 
 private double KP_STRAIGHTSONAR_GYRO=0.1;
 private double KI_STRAIGHTSONAR_GYRO=0;
@@ -78,9 +78,6 @@ Joystick joy0;
 		double timeontarget=0,timeontargetstart=0;
 		boolean ontarget1=false,ontarget2=false;
 		boolean velmode=false;
-		KP_TURN=SmartDashboard.getNumber("DB/Slider 0", 0);
-		KI_TURN=SmartDashboard.getNumber("DB/Slider 0", 0);
-		KD_TURN=SmartDashboard.getNumber("DB/Slider 0", 0);
 		if(falconDrive.getmode()==VELOCITY) velmode = true;
 		angle1 = gyro.getAngle(); 
 		target=target+angle1;
@@ -107,13 +104,12 @@ Joystick joy0;
 			rotateValue= limit(err1*KP_TURN+integral*KI_TURN+rate*KD_TURN,MAX_ROTATE_POWER);
 			
 			if(velmode) rotateValue = rotateValue*MAX_ROTATE_SPEED;
-			falconDrive.arcadeDrive(0, -rotateValue,false);	
+			falconDrive.arcadeDrive(0, -rotateValue,false,0);	
 			falconDrive.display();
-			SmartDashboard.putNumber("Angle",angle1);
-			SmartDashboard.putNumber("Angle error",err1);
-			SmartDashboard.putNumber("Angle integral",integral);
-			SmartDashboard.putNumber("Angle rate",rate);
-			SmartDashboard.putNumber("Angle rotate value",rotateValue);			
+//			SmartDashboard.putString("DB/String 6","Angle"+angle1);
+//			SmartDashboard.putString("DB/String 7","Angle error"+err1);
+//			SmartDashboard.putString("DB/String 8","Angle rotate value"+rotateValue);
+//			SmartDashboard.putString("DB/String 9","KP TURN"+KP_TURN);
 			
 		}
 		});
@@ -174,7 +170,7 @@ Joystick joy0;
 				rotateValue = rotateValue*sg_MAX_ROTATE_SPEED;
 				straightValue = straightValue*sg_MAX_ROTATE_SPEED;
 			}
-			falconDrive.arcadeDrive(straightValue, -rotateValue,false);	
+			falconDrive.arcadeDrive(straightValue, -rotateValue,false,0);	
 			falconDrive.display();
 			SmartDashboard.putNumber("Angle",angle1);
 		}
@@ -236,19 +232,17 @@ Joystick joy0;
 					rotateValue = rotateValue*MAX_ROTATE_SPEED;
 					straightValue = straightValue*MAX_ROTATE_SPEED;
 				}
-				falconDrive.arcadeDrive(straightValue, -rotateValue,false);	
-				falconDrive.display();
-				SmartDashboard.putNumber("Angle",angle1);
-				SmartDashboard.putNumber("Angle error",err1);
+				falconDrive.arcadeDrive(straightValue, -rotateValue,false,0);	
+				SmartDashboard.putString("DB/String 6","rot val "+ rotateValue);
+				SmartDashboard.putString("DB/String 7","err angle"+errangle);
+				SmartDashboard.putString("DB/String 8","KP Turn"+ KP_TURN);
+
+
 			}
 			});
 			t.start();
 		}
 		
-	
-	
-	
-	
 	
 //**************************************	  
 // Limit the output 
@@ -263,6 +257,21 @@ Joystick joy0;
 		    return num;
 		  }
 
+		public void setPIDConstants() {
+			// FOR TUNING - Remove once completing
+//			KP_TURN=SmartDashboard.getNumber("DB/Slider 0", 0);
+//			KI_TURN=SmartDashboard.getNumber("DB/Slider 1", 0);
+//			KD_TURN=SmartDashboard.getNumber("DB/Slider 2", 0);
+//			KIZONE_TURN=SmartDashboard.getNumber("DB/Slider 3", 0);
+			KP_SRAIGHTENC_GYRO=SmartDashboard.getNumber("DB/Slider 0", 0);
+			KI_SRAIGHTENC_GYRO=SmartDashboard.getNumber("DB/Slider 1", 0);
+			KD_SRAIGHTENC_GYRO=SmartDashboard.getNumber("DB/Slider 2", 0);
+			KIZONE_SRAIGHTENC_GYRO=SmartDashboard.getNumber("DB/Slider 3", 0);
+
+				}
+
+
+	  
 }
 
 	

@@ -9,9 +9,9 @@ public class Intake {
 	
 
 	public Intake() {
-		intakeMotorL.setNeutralMode(com.ctre.phoenix.motorcontrol.NeutralMode.Coast);
+		intakeMotorL.setNeutralMode(com.ctre.phoenix.motorcontrol.NeutralMode.Brake);
 		intakeMotorL.set(ControlMode.PercentOutput,0);
-		intakeMotorR.setNeutralMode(com.ctre.phoenix.motorcontrol.NeutralMode.Coast);
+		intakeMotorR.setNeutralMode(com.ctre.phoenix.motorcontrol.NeutralMode.Brake);
 		intakeMotorR.set(ControlMode.PercentOutput,0);
 	
 		intakeMotorR.setInverted(true);

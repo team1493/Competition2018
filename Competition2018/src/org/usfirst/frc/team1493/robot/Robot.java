@@ -18,16 +18,20 @@ public class Robot extends IterativeRobot {
 	CameraServer cam0;
 	
 // Button Assignments	
+
+// Buttons on Joystick 0	
 	int buttonWinchUp=5;
 	int buttonWinchDown=6;
+	
+// Buttons on Joystick 1	
 	int buttonIntakeIn=5;
 	int buttonIntakeOut=6;
-	int buttonArm=7;
-	int buttonSolenoid=8;
+	int buttonSolenoid=7;
 	int buttonElevator1=1;
 	int buttonElevator2=2;
-	int buttonElevator3=3;
+	int buttonElevator3=3;	
 	int buttonElevator4=4;
+	
 	
 	FalconDrive falconDrive = new FalconDrive();
 	Winch winch = new Winch();
@@ -41,10 +45,8 @@ public class Robot extends IterativeRobot {
 	PIDC pidc = new PIDC(falconDrive,gyro,sonar,joy0);
 	
 	int elevPosition=1;
-	double armInput,armSetPosition;
+	double armInput,armSetPosition,armSetPositionStart;
 	boolean armSolPosition=false;
-	boolean buttonElevator1Prev = false, buttonElevator2Prev= false;
-	boolean buttonElevator3Prev = false, buttonElevator4Prev = false;
 	boolean buttonArmPrev = false, buttonSolenoidPrev=false, solPosition = false;
 	
 
@@ -56,6 +58,7 @@ public class Robot extends IterativeRobot {
 // get the starting arm position	   
 	    arm.armStop();
 	    armSetPosition=arm.getPosition();
+	    armSetPositionStart=armSetPosition;
 		}
 
 
@@ -72,29 +75,24 @@ public class Robot extends IterativeRobot {
 	public void teleopPeriodic() {
 		double axis1,axis4;
 
+		if (joy0.getRawButton(2) ) {
+//			arm.setPIDConstants();			
+//			falconDrive.setPIDConstants();
+//			pidc.setPIDConstants();
+			pidc.setPIDConstants();
+			pidc.driveStraightGyro(6000);
+		}
+		
 // Drive Elevator		
-		if (joy1.getRawButton(buttonElevator1) && !buttonElevator1Prev) {
+		if (joy1.getRawButton(buttonElevator1)){
 				elev.setPostion(1);
 				intake.stop();
 		}		
-		else if (joy1.getRawButton(buttonElevator2) && !buttonElevator2Prev) {
-				elev.setPostion(2);
-//				intake.spinInSlow();
-		}
-		else if (joy1.getRawButton(buttonElevator3) && !buttonElevator3Prev) {
-				elev.setPostion(3);
-//				intake.spinInSlow();
-		}
-		else if (joy1.getRawButton(buttonElevator4) && !buttonElevator4Prev) {
-				elev.setPostion(4);
-//				intake.spinInSlow();
-		}
+
+		else if (joy1.getRawButton(buttonElevator2)) elev.setPostion(2);
+		else if (joy1.getRawButton(buttonElevator3)) elev.setPostion(3);
+		else if (joy1.getRawButton(buttonElevator4)) elev.setPostion(4);
 				
-//		elev.manualElvevator(0.5*joy1.getRawAxis(5));
-		buttonElevator1Prev=joy0.getRawButton(buttonElevator1);
-		buttonElevator2Prev=joy0.getRawButton(buttonElevator2);
-		buttonElevator3Prev=joy0.getRawButton(buttonElevator3);
-		buttonElevator4Prev=joy0.getRawButton(buttonElevator4);
 
 // Drive Intake
 		
@@ -117,8 +115,12 @@ public class Robot extends IterativeRobot {
 			}
 		buttonArmPrev=joy1.getRawButton(buttonArm);
 */
-		armInput=joy1.getRawAxis(5);
-		if(Math.abs(armInput)>0.05 ) armSetPosition=armSetPosition +armInput*2.5; 
+		armInput=-joy1.getRawAxis(5);{
+		if(Math.abs(armInput)>0.08 ) armSetPosition=armSetPosition +armInput*1.5;
+		if (armSetPosition>armSetPositionStart)
+			arm.setPositionStick(armSetPosition);
+		else arm.armStop();
+		}
 
 		
 // Drive the Solenoid		
@@ -131,7 +133,7 @@ public class Robot extends IterativeRobot {
 // Drive Wheels		
 		axis1=joy0.getRawAxis(1);
 		axis4=joy0.getRawAxis(4);
-		falconDrive.arcadeDrive(axis1, -axis4,true);	
+		falconDrive.arcadeDrive(axis1, -axis4,true,0);	
 
 	
 // Set LED Strip		
@@ -143,10 +145,18 @@ public class Robot extends IterativeRobot {
 		SmartDashboard.putString("DB/String 0","PosR "+falconDrive.getPositionRight());
 		SmartDashboard.putString("DB/String 1","PosL "+falconDrive.getPositionLeft());
 		SmartDashboard.putString("DB/String 2","Angle "+String.valueOf(   (double)((int)(10*gyro.getAngle())) /10  ) );
-		SmartDashboard.putString("DB/String 3","Range "+String.valueOf(sonar.getRange()));
+		SmartDashboard.putString("DB/String 3","Range "+String.valueOf((int)sonar.getRange()));
 		SmartDashboard.putString("DB/String 5","elev pos"+elev.getPosition());
-		SmartDashboard.putString("DB/String 6","arm pos"+arm.getPosition());
+		
+//		SmartDashboard.putString("DB/String 6","vel left "+ falconDrive.getVelocityLeft());
+//		SmartDashboard.putString("DB/String 7","vel right"+falconDrive.getVelocityRight());
+//		SmartDashboard.putString("DB/String 8","CLE left "+ falconDrive.getClosedLoopErrorLeft());
+//		SmartDashboard.putString("DB/String 9","CLE right"+falconDrive.getClosedLoopErrorRight());
 
+		SmartDashboard.putString("DB/String 6","arm pos"+arm.getPosition());
+		SmartDashboard.putString("DB/String 7","arm set"+(int)armSetPosition);
+		SmartDashboard.putString("DB/String 8","arm error"+(int)arm.getError());
+		SmartDashboard.putString("DB/String 9","arm input"+armInput);
 
 	}
 	
