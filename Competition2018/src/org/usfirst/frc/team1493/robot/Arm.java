@@ -6,6 +6,7 @@ import com.ctre.phoenix.motorcontrol.LimitSwitchSource;
 import com.ctre.phoenix.motorcontrol.can.WPI_TalonSRX;
 import com.ctre.phoenix.motorcontrol.ControlMode;
 import edu.wpi.first.wpilibj.Solenoid;
+import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 
 public class Arm {
 	WPI_TalonSRX arm = new WPI_TalonSRX(6);
@@ -15,13 +16,13 @@ public class Arm {
 	double pos1=-200;     // down
 	double pos2 = -615;  //up
 //motor output for position control with analog pot = (kp/1023) x error 
-	double KPup=8;
-	double KPdown = .8;
-	double KI = 0;
-	double KDup = 1000;
+	double KPup=7;
+	double KPdown = .5;
+	double KI = 0.01;
+	double KDup = 1200;
 	double KDdown = 900;
 	double KF = 0;
-	int KIZONE = 0;
+	int KIZONE = 5;
 	private final int TIMEOUT=10;
 
 	
@@ -39,17 +40,12 @@ public class Arm {
 		arm.configPeakOutputReverse(-.4,10);
 		arm.configNominalOutputForward(0, 10);
 		arm.configNominalOutputReverse(0, 10);
-		arm.configAllowableClosedloopError(0,20,10);
+		arm.configAllowableClosedloopError(0,5,10);
 		
-// set reverse soft limit greater than position 1 setting - will this have the effect of lettign
-// the arm settle back to position 1 with no power?		
-//		arm.configReverseSoftLimitThreshold(-400, 10); 		 
-//		arm.configForwardSoftLimitThreshold(-500, 10); 		 
 		arm.configForwardSoftLimitEnable(false, 10); 
 		arm.configReverseSoftLimitEnable(false, 10); 
 		 
-		 
-		arm.setInverted(false);
+		arm.setInverted(true);
 		arm.setSensorPhase(true);
 
 
@@ -125,5 +121,19 @@ public class Arm {
 		String a=String.valueOf( arm.getControlMode() );
 		return a;
 	}
+
+	public void setPIDConstants() {
+// FOR TUNING - Remove once completing
+		KPup=SmartDashboard.getNumber("DB/Slider 0", 0);
+		KDup=SmartDashboard.getNumber("DB/Slider 1", 0);
+		KI=SmartDashboard.getNumber("DB/Slider 2", 0);
+		KIZONE=(int)SmartDashboard.getNumber("DB/Slider 3", 0);
+		arm.config_kP(0, KPup, TIMEOUT);
+		arm.config_kD(0, KDup, TIMEOUT);
+		arm.config_kI(0, KI, TIMEOUT);
+		arm.config_IntegralZone(0, KIZONE, TIMEOUT);
+
+	}
+	
 	
 }

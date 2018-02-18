@@ -7,12 +7,12 @@ import com.ctre.phoenix.motorcontrol.can.WPI_TalonSRX;
 
 public class Elevator {
 	WPI_TalonSRX elev = new WPI_TalonSRX(8);
-	double pos1=-290;
-	double pos2 = -450;
+	double pos1 = -290;
+	double pos2 = -380;
 	double pos3 = -550;
-	double pos4 = -850;
+	double pos4 = -890;
 	
-	double KP=6;
+	double KP = 6;
 	double KI = 0;
 	double KD = 100;
 	double KF = 0;

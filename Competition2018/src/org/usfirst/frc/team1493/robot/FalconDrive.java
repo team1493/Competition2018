@@ -11,9 +11,11 @@ public class FalconDrive {
 	WPI_TalonSRX br = new WPI_TalonSRX(5);
 
 	
-	private final double RAMPRATE_OPEN=.5;
+	private final double RAMPRATE_OPEN=.25;
 	
-	private double LRCorrection = 0.05;
+	private final double LCorrection = 0.1;
+	private final double RCorrection = 0.1;
+	private final double MaxRotation = 0.8;
 	
 	private double KP_VEL=0; 
 	private double KI_VEL=0; 
@@ -42,6 +44,8 @@ public class FalconDrive {
 		bl.configSelectedFeedbackSensor(com.ctre.phoenix.motorcontrol.FeedbackDevice.QuadEncoder, 0,0);
 		br.configSelectedFeedbackSensor(com.ctre.phoenix.motorcontrol.FeedbackDevice.QuadEncoder, 0,0);
 
+	
+		
 		bl.configNominalOutputForward(0, TIMEOUT);
 		br.configNominalOutputForward(0, TIMEOUT);
 		fl.configNominalOutputForward(0, TIMEOUT);
@@ -200,21 +204,15 @@ public class FalconDrive {
 //**************************************
 // arcade drive method from RobotDrive class in WPI library	
 //**************************************	
-	  public void arcadeDrive(double moveValue, double rotateValue, boolean squared) {
+	  public void arcadeDrive(double moveValue, double rotateValue, boolean squared, int m) {
 		    double leftMotorSpeed;
 		    double rightMotorSpeed;
-
-// FOR TUNING - Remove once completing
-//		    LRCorrection=SmartDashboard.getNumber("DB/Slider 0", .18);
-//		    KP_VEL = SmartDashboard.getNumber("DB/Slider 1", 0);
-//		    KD_VEL=SmartDashboard.getNumber("DB/Slider 2", 0);
-//		    MAXRPM=(int)( (1000*SmartDashboard.getNumber("DB/Slider 3", 0) ));
-///		    
-		    
+		    double lrcorrection;
 		    moveValue = limit(moveValue);
-		    LRCorrection = (moveValue>0) ? 0.18 : 0.18;
-		    rotateValue = 0.8*rotateValue+LRCorrection*moveValue;
+		    lrcorrection = (moveValue>0) ? LCorrection : RCorrection;
+		    rotateValue = MaxRotation*rotateValue+lrcorrection*moveValue;
 		    rotateValue = -limit(rotateValue);
+		    
 		    
 // square the inputs (while preserving the sign) to increase fine control
 // while permitting full power
@@ -230,7 +228,19 @@ public class FalconDrive {
 		        rotateValue = -(rotateValue * rotateValue);
 		      }
 		    }
-
+/*
+		    if (Math.abs(rotateValue) > .05) {
+		    	br.configOpenloopRamp(0, TIMEOUT); 
+				bl.configOpenloopRamp(0, TIMEOUT);
+				fr.configOpenloopRamp(0, TIMEOUT);
+				fl.configOpenloopRamp(0, TIMEOUT);
+		    } else {
+		    	br.configOpenloopRamp(RAMPRATE_OPEN, TIMEOUT);
+				bl.configOpenloopRamp(RAMPRATE_OPEN, TIMEOUT);
+				fr.configOpenloopRamp(RAMPRATE_OPEN, TIMEOUT);
+				fl.configOpenloopRamp(RAMPRATE_OPEN, TIMEOUT);
+		    }
+*/		    
 		    if (moveValue > 0.0) {
 		      if (rotateValue > 0.0) {
 		        leftMotorSpeed = moveValue - rotateValue;
@@ -248,13 +258,14 @@ public class FalconDrive {
 		        rightMotorSpeed = -Math.max(-moveValue, -rotateValue);
 		      }
 		    }
-		    if(bl.getControlMode()==VBUS) {
+
+		    if(m==0) {
 			  fl.set(VBUS, -limit(leftMotorSpeed));
 			  bl.set(VBUS,-limit(leftMotorSpeed));
 			  fr.set(VBUS,limit(rightMotorSpeed));
 			  br.set(VBUS,limit(rightMotorSpeed));
-		    }
-		    if(bl.getControlMode()==VELOCITY) {
+		    }		    
+		    if(m==1) {
 		    	bl.set(VELOCITY,-MAXRPM*limit(leftMotorSpeed));		    
 		    	br.set(VELOCITY,MAXRPM*limit(rightMotorSpeed));
 		    	
@@ -292,8 +303,29 @@ public class FalconDrive {
 		return -br.getSelectedSensorVelocity(0);
 	}
 	
+	public double getClosedLoopErrorRight() {
+		return -br.getClosedLoopError(0);
+	}
+	public double getClosedLoopErrorLeft() {
+		return -bl.getClosedLoopError(0);
+	}
+
 	public void resetEncpoders() {
 		// How do you do reset encoder count to zero ?
+	}
+
+	public void setPIDConstants() {
+	// FOR TUNING - Remove once completing
+    KP_VEL = SmartDashboard.getNumber("DB/Slider 0", 0);
+    KD_VEL=SmartDashboard.getNumber("DB/Slider 1", 0);
+    KF_VEL=SmartDashboard.getNumber("DB/Slider 2", 0);
+    MAXRPM=(int)( (1000*SmartDashboard.getNumber("DB/Slider 3", 0) ));
+	  bl.config_kP(0, KP_VEL, TIMEOUT) ; 
+	  bl.config_kD(0, KD_VEL, TIMEOUT) ; 
+	  bl.config_kF(0, KF_VEL, TIMEOUT) ; 
+	  br.config_kP(0, KP_VEL, TIMEOUT) ; 
+	  br.config_kD(0, KD_VEL, TIMEOUT) ; 
+	  br.config_kF(0, KF_VEL, TIMEOUT) ; 
 	}
 
 
